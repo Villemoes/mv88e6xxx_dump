@@ -1451,10 +1451,9 @@ static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
 		printf("%d ", page);
 		printf("%4d ", vid);
 
-		uint16_t *pmask = table[i].data;
 		for (p = 0; p <= ctx->ports; p++) {
-			pmask += p/8;
-			port_tag[p] = ( (*pmask) >> ((p % 8) * 2)) & 0x3;
+			uint16_t pmask = table[i].data[p/8];
+			port_tag[p] = (pmask >> ((p % 8) * 2)) & 0x3;
 			printf ("%c", tagging[port_tag[p]]);
 		}
 
