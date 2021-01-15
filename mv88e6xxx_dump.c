@@ -1466,6 +1466,50 @@ static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
 	}
 }
 
+static void vtu_mv88e6250(struct mv88e6xxx_ctx *ctx)
+{
+	struct mv88e6xxx_devlink_vtu_entry *table;
+	bool state, page, vidpolicy;
+	uint8_t fprio, qprio, fid;
+	uint8_t port_tag[16], sid;
+	int entries, i, p;
+	uint16_t vid;
+
+	vtu_mv88e6xxx_preamble(ctx);
+
+	table = (struct mv88e6xxx_devlink_vtu_entry *)ctx->snapshot_data;
+	entries = ctx->data_len / sizeof(struct mv88e6xxx_devlink_vtu_entry);
+	for (i = 0; i < entries; i++) {
+		state = table[i].vid & 0x1000;
+		if (!state)
+			continue;
+		vid = table[i].vid & 0xfff;
+		page = 0;
+		fprio = (table[i].data[1] >> 8)  & 0xf;
+		qprio = (table[i].data[1] >> 12) & 0xf;
+		fid = table[i].op & 0x000f;
+		fid |= (table[i].op & 0x0300) >> 4;
+		vidpolicy = (table[i].op >> 10) & 1;
+		sid = 0;
+
+		printf("%d ", page);
+		printf("%4d ", vid);
+
+		for (p = 0; p <= ctx->ports; p++) {
+			uint16_t pmask = table[i].data[p/4];
+			port_tag[p] = (pmask >> ((p % 4) * 4)) & 0x3;
+			printf ("%c", tagging[port_tag[p]]);
+		}
+
+		printf(" %4d %4d", fid, sid);
+		printf(" %5c", (qprio & 0x8) ? '0' + (qprio & 0x7) : '-');
+		printf(" %5c", (fprio & 0x8) ? '0' + (fprio & 0x7) : '-');
+		printf(" %5d  ", vidpolicy);
+
+		printf("\n");
+	}
+}
+
 static void cmd_atu(struct mv88e6xxx_ctx *ctx)
 {
 	int err;
@@ -1555,7 +1599,7 @@ static void cmd_vtu(struct mv88e6xxx_ctx *ctx)
 		return vtu_mv88e6xxx(ctx, 0x7ff);
 	case MV88E6220:
 	case MV88E6250:
-		return vtu_mv88e6xxx(ctx, 0x3f);
+		return vtu_mv88e6250(ctx);
 	case MV88E6131:
 	case MV88E6185:
 	case MV88E6123:
