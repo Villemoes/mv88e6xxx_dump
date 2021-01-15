@@ -1406,17 +1406,10 @@ static void atu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t portvec_mask,
 
 static const char tagging[] = {'V', 'U', 'T','X'};
 
-static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
+static void vtu_mv88e6xxx_preamble(const struct mv88e6xxx_ctx *ctx)
 {
-	struct mv88e6xxx_devlink_vtu_entry *table;
-	bool state, page, vidpolicy;
-	uint8_t fprio, qprio, fid;
-	uint8_t port_tag[16], sid;
-	int entries, i, p;
-	uint16_t vid;
+	int p;
 
-	table = (struct mv88e6xxx_devlink_vtu_entry *)ctx->snapshot_data;
-	entries = ctx->data_len / sizeof(struct mv88e6xxx_devlink_vtu_entry);
 	printf("\tV - a member, egress not modified\n");
 	printf("\tU - a member, egress untagged\n");
 	printf("\tT - a member, egress tagged\n");
@@ -1428,6 +1421,21 @@ static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
 	}
 
 	printf("  FID  SID QPrio FPrio VidPolicy\n");
+}
+
+static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
+{
+	struct mv88e6xxx_devlink_vtu_entry *table;
+	bool state, page, vidpolicy;
+	uint8_t fprio, qprio, fid;
+	uint8_t port_tag[16], sid;
+	int entries, i, p;
+	uint16_t vid;
+
+	vtu_mv88e6xxx_preamble(ctx);
+
+	table = (struct mv88e6xxx_devlink_vtu_entry *)ctx->snapshot_data;
+	entries = ctx->data_len / sizeof(struct mv88e6xxx_devlink_vtu_entry);
 	for (i = 0; i < entries; i++) {
 		state = table[i].vid & 0x1000;
 		if (!state)
