@@ -1404,7 +1404,7 @@ static void atu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t portvec_mask,
 	}
 }
 
-char tagging[] = {'V', 'U', 'T','X'};
+static const char tagging[] = {'V', 'U', 'T','X'};
 
 static void vtu_mv88e6xxx(struct mv88e6xxx_ctx *ctx, uint16_t fid_mask)
 {
